@@ -58,7 +58,7 @@ final class HttpMiddlewareDispatcher implements RequestHandlerInterface
 
         $this->queue->next();
 
-        if ($entry === null){
+        if ($entry === null) {
             return $this->handle($request);
         }
 
@@ -84,18 +84,21 @@ final class HttpMiddlewareDispatcher implements RequestHandlerInterface
     public function addQueue(array $middlewares): void
     {
         $key = $this->queue->key();
-        if ($key === null) {
+        if ($key !== null) {
+            $queue = $this->queue->getArrayCopy();
+            // array_reverse нужен для того, чтобы вставить массив как есть, так как
+            // $key всё время одинаковый, иначе он вставится перевернутым
+            foreach (array_reverse($middlewares) as $middleware) {
+                $queue = array_insert_before($queue, $key, $middleware);
+            }
+            $this->queue = new ArrayIterator($queue);
+            $this->queue->seek($key);
             return;
         }
 
-        $queue = $this->queue->getArrayCopy();
-        // array_reverse нужен для того, чтобы вставить массив как есть, так как
-        // $key всё время одинаковый, иначе он вставится перевернутым
-        foreach (array_reverse($middlewares) as $middleware) {
-            $queue = array_insert_before($queue, $key, $middleware);
+        foreach ($middlewares as $middleware) {
+            $this->queue->append($middleware);
         }
-        $this->queue = new ArrayIterator($queue);
-        $this->queue->seek($key);
     }
 
 }

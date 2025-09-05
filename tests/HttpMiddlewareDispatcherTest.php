@@ -210,7 +210,7 @@ class HttpMiddlewareDispatcherTest extends TestCase
         $this->assertSame($middleware3, $queueArray[2]);
     }
 
-    public function testAddQueueWhenKeyIsNullDoesNothing(): void
+    public function testAddQueueWhenKeyIsNull(): void
     {
         $middleware = $this->createMock(MiddlewareInterface::class);
 
@@ -221,13 +221,18 @@ class HttpMiddlewareDispatcherTest extends TestCase
         // Move beyond the end so key becomes null
         $queue->next();
 
-        $dispatcher->addQueue([$this->createMock(MiddlewareInterface::class)]);
+        $dispatcher->addQueue([
+            $middleware2 = $this->createMock(MiddlewareInterface::class),
+            $middleware3 = $this->createMock(MiddlewareInterface::class),
+        ]);
 
         // Queue should remain unchanged
         $queue = $this->getQueueProperty($dispatcher);
         $queueArray = $queue->getArrayCopy();
-        $this->assertCount(1, $queueArray);
+        $this->assertCount(3, $queueArray);
         $this->assertSame($middleware, $queueArray[0]);
+        $this->assertSame($middleware2, $queueArray[1]);
+        $this->assertSame($middleware3, $queueArray[2]);
     }
 
     public function testMultipleMiddlewareExecutionOrder(): void
